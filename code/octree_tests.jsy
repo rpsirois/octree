@@ -1,0 +1,81 @@
+
+export default @{}
+  test() ::
+    const testNodes = @[]
+      @{} name: 'center node in octant 0'
+          aabb: @[] [-0.55, -0.55, -0.55], [-0.45, -0.45, -0.45]
+      @{} name: 'center node in octant 1'
+          aabb: @[] [-0.55, -0.55, 0.45], [-0.45, -0.45, 0.55]
+      @{} name: 'center node in octant 2'
+          aabb: @[] [-0.55, 0.45, -0.55], [-0.45, 0.55, -0.45]
+      @{} name: 'center node in octant 3'
+          aabb: @[] [-0.55, 0.45, 0.45], [-0.45, 0.55, 0.55]
+      @{} name: 'center node in octant 3.0/1'
+          aabb: @[] [-0.8, 0.2, 0.45], [-0.7, 0.3, 0.55]
+      @{} name: 'center node in octant 3.0'
+          aabb: @[] [-0.8, 0.2, 0.2], [-0.7, 0.3, 0.3]
+      @{} name: 'center node in octant 3.1'
+          aabb: @[] [-0.8, 0.2, 0.7], [-0.7, 0.3, 0.8]
+      @{} name: 'center node in octant 3.2'
+          aabb: @[] [-0.8, 0.7, 0.2], [-0.7, 0.8, 0.3]
+      @{} name: 'center node in octant 3.3'
+          aabb: @[] [-0.8, 0.7, 0.7], [-0.7, 0.8, 0.8]
+      @{} name: 'center node in octant 3.4'
+          aabb: @[] [-0.3, 0.2, 0.2], [-0.2, 0.3, 0.3]
+      @{} name: 'center node in octant 3.5'
+          aabb: @[] [-0.3, 0.2, 0.7], [-0.2, 0.3, 0.8]
+      @{} name: 'center node in octant 3.6'
+          aabb: @[] [-0.3, 0.7, 0.2], [-0.2, 0.8, 0.3]
+      @{} name: 'center node in octant 3.7'
+          aabb: @[] [-0.3, 0.7, 0.7], [-0.2, 0.8, 0.8]
+      @{} name: 'center node in octant 4'
+          aabb: @[] [0.45, -0.55, -0.55], [0.55, -0.45, -0.45]
+      @{} name: 'center node in octant 5'
+          aabb: @[] [0.45, -0.55, 0.45], [0.55, -0.45, 0.55]
+      @{} name: 'center node in octant 6'
+          aabb: @[] [0.45, 0.45, -0.55], [0.55, 0.55, -0.45]
+      @{} name: 'center node in octant 7'
+          aabb: @[] [0.45, 0.45, 0.45], [0.55, 0.55, 0.55]
+
+    const o = new Octree @:
+      o: [0, 0, 0]
+      size: 2
+      threshold: 1
+
+    for const tn of testNodes ::
+      o.insert(tn)
+    return o
+
+  prepareBuffers(o) ::
+    const octants = [], totalDepth = o.stats().total_depth
+    o.sink @ branch => ::
+      var aabb, back_bottom_left, back_bottom_right, back_top_left, back_top_right, front_bottom_left, front_bottom_right, front_top_left, front_top_right;
+      aabb = branch.aabb;
+      back_bottom_left = aabb[0];
+      back_bottom_right = @[] aabb[1][0], aabb[0][1], aabb[0][2]
+      back_top_left = @[] aabb[0][0], aabb[1][1], aabb[0][2]
+      back_top_right = @[] aabb[1][0], aabb[1][1], aabb[0][2]
+      front_bottom_left = @[] aabb[0][0], aabb[0][1], aabb[1][2]
+      front_bottom_right = @[] aabb[1][0], aabb[0][1], aabb[1][2]
+      front_top_left = @[] aabb[0][0], aabb[1][1], aabb[1][2]
+      front_top_right = aabb[1];
+      return octants.push @:
+        opacity: (totalDepth - branch.depth + 1) / (totalDepth + 1),
+        vertices: @[]
+          // front
+          front_bottom_left, front_bottom_right, front_bottom_right, front_top_right, front_top_right, front_top_left, front_top_left, front_bottom_left,
+          // back
+          back_bottom_left, back_bottom_right, back_bottom_right, back_top_right, back_top_right, back_top_left, back_top_left, back_bottom_left,
+          // top
+          back_top_left, back_top_right, back_top_right, front_top_right, front_top_right, front_top_left, front_top_left, back_top_left,
+          // bottom
+          back_bottom_left, back_bottom_right, back_bottom_right, front_bottom_right, front_bottom_right, front_bottom_left, front_bottom_left, back_bottom_left,
+          // right
+          back_bottom_right, back_top_right, back_top_right, front_top_right, front_top_right, front_bottom_right, front_bottom_right, back_bottom_right,
+          // left
+          back_bottom_left, back_top_left, back_top_left, front_top_left, front_top_left, front_bottom_left, front_bottom_left, back_bottom_left
+
+    return @{}
+      octants: octants
+      nodes: o.collectAll('aabb')
+

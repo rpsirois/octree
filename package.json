@@ -1,0 +1,21 @@
+{
+  "private": true,
+  "dependencies": {},
+  "devDependencies": {
+    "babel-preset-jsy": "^0.9.4",
+    "babel-cli": "^6.26.0",
+    "rollup": "^0.55.0",
+    "rollup-plugin-babel": "^3.0.2"
+  },
+  "babel": {
+    "presets": [
+      "jsy/lean"
+    ]
+  },
+  "scripts": {
+    "build": "rollup --config",
+    "watch": "npm -s run build -- --watch",
+    "pretest": "npm -s run build",
+    "test": "true"
+  }
+}
